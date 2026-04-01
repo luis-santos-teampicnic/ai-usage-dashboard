@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta http-equiv="refresh" content="3600">
+<title>Claude Token Usage Leaderboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --picnic-red: #E1171E;
+    --picnic-red-dark: #B40117;
+    --picnic-green: #88A91E;
+    --picnic-green-dark: #6B7A3B;
+    --bg-dark: #1A1C24;
+    --bg-card: #22252F;
+    --text-primary: #F8F5F2;
+    --text-secondary: #B5B0A8;
+    --text-muted: #807B73;
+    --gold: #FFD700;
+    --silver: #C0C0C0;
+    --bronze: #CD7F32;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg-dark);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    padding: 1vh 2vw;
+  }
+
+  /* ── Header ──────────────────────────────────────── */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.8vh;
+    flex-shrink: 0;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 1.2vw;
+  }
+
+  /* ── Background watermark logo ──────────────────── */
+  .bg-logo {
+    position: fixed;
+    width: 75vw;
+    height: 75vw;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-22deg);
+    opacity: 0.06;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .header-title {
+    font-size: 2.2vw;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    color: var(--text-primary);
+    text-transform: uppercase;
+  }
+
+  .header-title span {
+    color: var(--picnic-red);
+    text-shadow: 0 0 20px rgba(225,23,30,0.3);
+  }
+
+  .header-stats {
+    display: flex;
+    gap: 2vw;
+  }
+
+  .header-stat {
+    text-align: right;
+  }
+
+  .header-stat-value {
+    font-size: 1.8vw;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-primary);
+    line-height: 1;
+  }
+
+  .header-stat-label {
+    font-size: 0.6vw;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-top: 0.2vh;
+  }
+
+  .header-stat-primary .header-stat-value {
+    color: #FF6A5A;
+  }
+
+  .header-stat-primary .header-stat-label {
+    color: var(--picnic-red);
+  }
+
+  /* ── Panels ──────────────────────────────────────── */
+  .leaderboard-wrapper {
+    display: flex;
+    gap: 1.5vw;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .leaderboard-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-card);
+    border-radius: 0.6vw;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5vw;
+    padding: 0.5vh 1vw;
+    font-size: 0.85vw;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    flex-shrink: 0;
+  }
+
+  .section-header.top {
+    background: linear-gradient(135deg, rgba(225,23,30,0.15), rgba(225,23,30,0.05));
+    border-bottom: 1px solid rgba(225,23,30,0.3);
+    border-left: 3px solid var(--picnic-red);
+    color: var(--picnic-red);
+  }
+
+  .section-header.bottom {
+    background: linear-gradient(135deg, rgba(136,169,30,0.12), rgba(136,169,30,0.04));
+    border-bottom: 1px solid rgba(136,169,30,0.3);
+    border-left: 3px solid var(--picnic-green);
+    color: var(--picnic-green);
+  }
+
+  /* ── Right panel: always visible, data changes on expand ── */
+
+  /* ── Expand toggle button ────────────────────────── */
+  .expand-btn {
+    position: fixed;
+    bottom: 1.2vh;
+    right: 1.2vw;
+    background: none;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 0.25vw;
+    color: rgba(255,255,255,0.18);
+    font-size: 0.55vw;
+    font-family: inherit;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.3vh 0.5vw;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+    z-index: 100;
+  }
+  .expand-btn:hover {
+    color: rgba(255,255,255,0.45);
+    border-color: rgba(255,255,255,0.2);
+  }
+
+  .section-header .icon { font-size: 1.2vw; }
+
+  /* ── Grid layout ─────────────────────────────────── */
+  /* Columns: rank | name | 2wk tokens | total tokens | PRs | PRs/1M */
+  --grid: 2.2vw 13vw 5.5vw 5.5vw 2.5vw 1fr;
+
+  .col-headers {
+    display: grid;
+    grid-template-columns: 2.2vw 13vw 11vw 2.5vw 1fr;
+    padding: 0.3vh 1vw 0;
+    flex-shrink: 0;
+  }
+
+  .col-group-label {
+    text-align: center;
+    font-size: 0.55vw;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding-bottom: 0.2vh;
+    margin-bottom: 0;
+  }
+
+  .token-icon {
+    height: 1.1em;
+    width: 1.1em;
+    vertical-align: -0.2em;
+    display: inline-block;
+  }
+
+  .table-header {
+    display: grid;
+    grid-template-columns: 2.2vw 13vw 5.5vw 5.5vw 2.5vw 1fr;
+    align-items: center;
+    padding: 0.2vh 1vw;
+    font-size: 0.6vw;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    flex-shrink: 0;
+  }
+
+  .table-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 2.2vw 13vw 5.5vw 5.5vw 2.5vw 1fr;
+    align-items: center;
+    padding: 0 1vw;
+    border-bottom: 1px solid rgba(255,255,255,0.025);
+    flex: 1;
+    min-height: 0;
+    animation: row-slide-in 0.4s ease-out both;
+  }
+
+  .row:nth-child(odd) { background: rgba(255,255,255,0.015); }
+
+  /* ── Rank ───────────────────────────────────────── */
+  .rank {
+    font-size: 0.85vw;
+    font-weight: 800;
+    text-align: center;
+    color: var(--text-muted);
+  }
+
+  .rank-1 .rank { color: var(--gold); }
+  .rank-2 .rank { color: var(--silver); }
+  .rank-3 .rank { color: var(--bronze); }
+
+  .rank-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.6vw;
+    height: 1.6vw;
+    border-radius: 50%;
+    font-size: 0.8vw;
+    font-weight: 900;
+  }
+
+  /* ── #1 flag — broadcast championship pennant ─────── */
+  /*
+     Design: Multi-layer metallic pennant in Picnic red.
+     Outer shell = bright edge highlight gradient (simulates chrome bezel).
+     ::before = inner body with 6-stop specular metallic red.
+     ::after = atmospheric glow bloom behind the flag.
+     Text = gold-to-white gradient fill with drop-shadow for crispness.
+  */
+  .rank-flag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    width: 1.1vw;
+    height: 1.5vw;
+    /* Outer bezel — bright chrome-like edge that catches light */
+    background: linear-gradient(
+      170deg,
+      rgba(255,255,255,0.9) 0%,
+      rgba(255,230,150,0.7) 8%,
+      #FFD700 20%,
+      #FFE44D 45%,
+      #C8A200 70%,
+      #6B5600 100%
+    );
+    clip-path: polygon(0 0, 100% 0, 100% 72%, 50% 100%, 0 72%);
+    z-index: 1;
+  }
+
+  /* Inner body — inset 1px to reveal the bezel edge,
+     multi-stop metallic red simulating curved reflective surface */
+  .rank-flag::before {
+    content: '';
+    position: absolute;
+    inset: 1px;
+    background: linear-gradient(
+      180deg,
+      #C8A200 0%,
+      #FFD700 12%,
+      #FFE44D 36%,
+      #FFD700 52%,
+      #B8960A 72%,
+      #7A6400 100%
+    );
+    clip-path: polygon(0 0, 100% 0, 100% 72%, 50% 100%, 0 72%);
+    z-index: 1;
+  }
+
+  /* Atmospheric glow bloom — radial gradient sitting behind the flag */
+  .rank-flag::after {
+    content: '';
+    position: absolute;
+    inset: -0.4vw;
+    border-radius: 0.25vw;
+    background: radial-gradient(
+      ellipse at 50% 35%,
+      rgba(255,215,0,0.5) 0%,
+      rgba(255,215,0,0.18) 45%,
+      transparent 72%
+    );
+    z-index: -1;
+    animation: flag-bloom 2.8s ease-in-out infinite alternate;
+    pointer-events: none;
+  }
+
+  @keyframes flag-bloom {
+    0%   { opacity: 0.55; transform: scale(0.96); }
+    100% { opacity: 1;    transform: scale(1.12); }
+  }
+
+  /* ── #1 rolling gold border ──────────────────────── */
+  .flag-ring {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Spinning conic gold gradient — sits behind the flag as a "border" */
+  .flag-ring::before {
+    content: '';
+    position: absolute;
+    width: 1.35vw;
+    height: 1.75vw;
+    clip-path: polygon(0 0, 100% 0, 100% 72%, 50% 100%, 0 72%);
+    background: conic-gradient(
+      from var(--ring-angle, 0deg),
+      #FFD700,
+      #FFA500,
+      #FF8C00,
+      #FFFFE0,
+      #FFD700,
+      #FFA500,
+      #FF6A00,
+      #FFD700
+    );
+    z-index: 0;
+    animation: gold-spin 2s linear infinite;
+  }
+
+  @property --ring-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+  }
+
+  @keyframes gold-spin {
+    to { --ring-angle: 360deg; }
+  }
+
+  /* #2 — spinning silver border */
+  .flag-ring-2::before {
+    background: conic-gradient(
+      from var(--ring-angle, 0deg),
+      #C0C0C0,
+      #E8E8E8,
+      #FFFFFF,
+      #A0A0A8,
+      #C0C0C0,
+      #E8E8E8,
+      #909098,
+      #C0C0C0
+    );
+    animation: gold-spin 2.5s linear infinite;
+  }
+
+  /* #3 — spinning bronze border */
+  .flag-ring-3::before {
+    background: conic-gradient(
+      from var(--ring-angle, 0deg),
+      #CD7F32,
+      #E8994C,
+      #FFD0A0,
+      #A0622A,
+      #CD7F32,
+      #E8994C,
+      #8B5A1B,
+      #CD7F32
+    );
+    animation: gold-spin 3s linear infinite;
+  }
+
+
+  .rank-flag-text {
+    position: relative;
+    z-index: 3;
+    font-size: 0.6vw;
+    font-weight: 900;
+    line-height: 1;
+    margin-top: -0.2vw;
+    letter-spacing: -0.02em;
+    background: linear-gradient(
+      180deg,
+      #1A1C24 0%,
+      #2E3140 40%,
+      #1A1C24 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 1px 0 rgba(255,255,255,0.3));
+  }
+
+  /* ── #2 pennant — silver ─────────────────────────── */
+  .rank-flag-2 {
+    background: linear-gradient(
+      170deg,
+      rgba(255,255,255,0.9) 0%,
+      rgba(220,220,225,0.7) 8%,
+      #A8A8B0 20%,
+      #D0D0D8 45%,
+      #808088 70%,
+      #404048 100%
+    );
+  }
+
+  .rank-flag-2::before {
+    background: linear-gradient(
+      180deg,
+      #B0B0B8 0%,
+      #C8C8D0 12%,
+      #E0E0E8 36%,
+      #C0C0C8 52%,
+      #909098 72%,
+      #585860 100%
+    );
+  }
+
+  .rank-flag-2::after {
+    background: radial-gradient(
+      ellipse at 50% 35%,
+      rgba(192,192,200,0.45) 0%,
+      rgba(192,192,200,0.15) 45%,
+      transparent 72%
+    );
+  }
+
+
+  /* ── #3 pennant — bronze ─────────────────────────── */
+  .rank-flag-3 {
+    background: linear-gradient(
+      170deg,
+      rgba(255,230,200,0.85) 0%,
+      rgba(220,170,120,0.6) 8%,
+      #CD7F32 20%,
+      #E0954A 45%,
+      #8B5A1B 70%,
+      #4A2E0A 100%
+    );
+  }
+
+  .rank-flag-3::before {
+    background: linear-gradient(
+      180deg,
+      #B8702C 0%,
+      #CD7F32 12%,
+      #E8994C 36%,
+      #CD7F32 52%,
+      #8B5A1B 72%,
+      #5C3810 100%
+    );
+  }
+
+  .rank-flag-3::after {
+    background: radial-gradient(
+      ellipse at 50% 35%,
+      rgba(205,127,50,0.45) 0%,
+      rgba(205,127,50,0.15) 45%,
+      transparent 72%
+    );
+  }
+
+
+  /* ── Name ───────────────────────────────────────── */
+  .name {
+    font-size: 0.9vw;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 0.5vw;
+  }
+
+  .rank-1 .name, .rank-2 .name, .rank-3 .name { font-weight: 700; }
+
+  /* ── Token columns ─────────────────────────────── */
+  .tokens {
+    font-size: 0.75vw;
+    font-weight: 500;
+    text-align: right;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    padding-right: 0.3vw;
+  }
+
+  .tokens-unit {
+    font-size: 0.65em;
+    font-weight: 500;
+    color: rgba(128,123,115,0.7);
+    margin-left: 0.1em;
+  }
+
+  .tokens-zero {
+    color: var(--text-muted);
+    font-style: italic;
+    font-weight: 400;
+  }
+
+  .tokens-max {
+    color: #FF6A5A;
+    font-weight: 800;
+    font-size: 0.9vw;
+    background: linear-gradient(90deg, #FF4500, #FF6A00, #FFD700);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 6px rgba(255,69,0,0.5));
+    animation: max-token-pulse 1.5s ease-in-out infinite alternate;
+  }
+
+  .tokens-max .tokens-unit {
+    -webkit-text-fill-color: #FF8C00;
+    color: #FF8C00;
+  }
+
+  @keyframes max-token-pulse {
+    0% { filter: drop-shadow(0 0 4px rgba(255,69,0,0.4)); }
+    100% { filter: drop-shadow(0 0 10px rgba(255,140,0,0.7)); }
+  }
+
+  /* ── Primary metric (PRs/1M) ─────────────────── */
+  .metric-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.5vw;
+    justify-content: flex-end;
+  }
+
+  .metric-bar-h {
+    flex: 1;
+    height: 0.7vh;
+    background: rgba(255,255,255,0.06);
+    border-radius: 3px;
+    overflow: hidden;
+    max-width: 12vw;
+  }
+
+  .metric-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--picnic-red), #FF6A00);
+    transition: width 0.6s ease;
+  }
+
+
+  .metric-value {
+    font-size: 1.05vw;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    color: #FF6A5A;
+    min-width: 3.5vw;
+    text-align: right;
+  }
+
+  .rank-1 .metric-value { color: var(--gold); text-shadow: 0 0 8px rgba(255,215,0,0.4); }
+  .rank-2 .metric-value { color: #E0E0E0; }
+  .rank-3 .metric-value { color: #D4944A; }
+
+  .col-right { text-align: right; }
+  .col-primary { color: var(--picnic-red) !important; font-weight: 700 !important; }
+
+  /* ── Footer ────────────────────────────────────── */
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.4vh;
+    flex-shrink: 0;
+  }
+
+  .footer-info {
+    font-size: 0.7vw;
+    color: var(--text-muted);
+  }
+
+
+  /* ── Broadcast: animated top bar ────────────────── */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--picnic-red), #FF6A00, var(--picnic-red), #FF6A00);
+    background-size: 200% 100%;
+    animation: top-bar-slide 3s linear infinite;
+    z-index: 9999;
+  }
+  @keyframes top-bar-slide { 0%{background-position:0% 0} 100%{background-position:200% 0} }
+
+  /* ── Broadcast: subtle scan-line overlay ────────── */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ── Live dot ──────────────────────────────────── */
+  .live-dot {
+    display: inline-block;
+    width: 0.4vw; height: 0.4vw;
+    border-radius: 50%;
+    background: var(--picnic-red);
+    margin-right: 0.25vw;
+    animation: live-pulse 2s ease-in-out infinite;
+    vertical-align: middle;
+  }
+  @keyframes live-pulse {
+    0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(225,23,30,0.6)}
+    50%{opacity:0.6;box-shadow:0 0 0 0.3vw rgba(225,23,30,0)}
+  }
+
+  /* ── Row entrance ──────────────────────────────── */
+  .row:nth-child(1){animation-delay:.03s} .row:nth-child(2){animation-delay:.06s}
+  .row:nth-child(3){animation-delay:.09s} .row:nth-child(4){animation-delay:.12s}
+  .row:nth-child(5){animation-delay:.15s} .row:nth-child(6){animation-delay:.18s}
+  .row:nth-child(7){animation-delay:.21s} .row:nth-child(8){animation-delay:.24s}
+  .row:nth-child(9){animation-delay:.27s} .row:nth-child(10){animation-delay:.30s}
+  .row:nth-child(11){animation-delay:.33s} .row:nth-child(12){animation-delay:.36s}
+  .row:nth-child(13){animation-delay:.39s} .row:nth-child(14){animation-delay:.42s}
+  .row:nth-child(15){animation-delay:.45s} .row:nth-child(16){animation-delay:.48s}
+  .row:nth-child(17){animation-delay:.51s} .row:nth-child(18){animation-delay:.54s}
+  .row:nth-child(19){animation-delay:.57s} .row:nth-child(20){animation-delay:.60s}
+
+  @keyframes row-slide-in {
+    0% { opacity: 0; transform: translateX(-0.8vw); }
+    100% { opacity: 1; transform: translateX(0); }
+  }
+
+  /* ── Non-expanded: scale up row content to fill taller rows ── */
+  .leaderboard-wrapper:not(.expanded) .name         { font-size: 1.25vw; }
+  .leaderboard-wrapper:not(.expanded) .rank         { font-size: 1.2vw; }
+  .leaderboard-wrapper:not(.expanded) .tokens       { font-size: 1.05vw; }
+  .leaderboard-wrapper:not(.expanded) .metric-value { font-size: 1.45vw; }
+  .leaderboard-wrapper:not(.expanded) .metric-bar-h { height: 1.1vh; }
+  .leaderboard-wrapper:not(.expanded) .rank-flag {
+    width: 1.55vw;
+    height: 2.1vw;
+  }
+  .leaderboard-wrapper:not(.expanded) .flag-ring::before {
+    width: 1.9vw;
+    height: 2.45vw;
+  }
+  .leaderboard-wrapper:not(.expanded) .rank-flag-text { font-size: 0.85vw; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs>
+  <symbol id="claude-icon" viewBox="0 0 1200 1200"><path fill="#d97757" d="M 233.959793 800.214905 L 468.644287 668.536987 L 472.590637 657.100647 L 468.644287 650.738403 L 457.208069 650.738403 L 417.986633 648.322144 L 283.892639 644.69812 L 167.597321 639.865845 L 54.926208 633.825623 L 26.577238 627.785339 L 3.3e-05 592.751709 L 2.73832 575.27533 L 26.577238 559.248352 L 60.724873 562.228149 L 136.187973 567.382629 L 249.422867 575.194763 L 331.570496 580.026978 L 453.261841 592.671082 L 472.590637 592.671082 L 475.328857 584.859009 L 468.724915 580.026978 L 463.570557 575.194763 L 346.389313 495.785217 L 219.543671 411.865906 L 153.100723 363.543762 L 117.181267 339.060425 L 99.060455 316.107361 L 91.248367 266.01355 L 123.865784 230.093994 L 167.677887 233.073853 L 178.872513 236.053772 L 223.248367 270.201477 L 318.040283 343.570496 L 441.825592 434.738342 L 459.946411 449.798706 L 467.194672 444.64447 L 468.080597 441.020203 L 459.946411 427.409485 L 392.617493 305.718323 L 320.778564 181.932983 L 288.80542 130.630859 L 280.348999 99.865845 C 277.369171 87.221436 275.194641 76.590698 275.194641 63.624268 L 312.322174 13.20813 L 332.8591 6.604126 L 382.389313 13.20813 L 403.248352 31.328979 L 434.013519 101.71814 L 483.865753 212.537048 L 561.181274 363.221497 L 583.812134 407.919434 L 595.892639 449.315491 L 600.40271 461.959839 L 608.214783 461.959839 L 608.214783 454.711609 L 614.577271 369.825623 L 626.335632 265.61084 L 637.771851 131.516846 L 641.718201 93.745117 L 660.402832 48.483276 L 697.530334 24.000122 L 726.52356 37.852417 L 750.362549 72 L 747.060486 94.067139 L 732.886047 186.201416 L 705.100708 330.52356 L 686.979919 427.167847 L 697.530334 427.167847 L 709.61084 415.087341 L 758.496704 350.174561 L 840.644348 247.490051 L 876.885925 206.738342 L 919.167847 161.71814 L 946.308838 140.29541 L 997.61084 140.29541 L 1035.38269 196.429626 L 1018.469849 254.416199 L 965.637634 321.422852 L 921.825562 378.201538 L 859.006714 462.765259 L 819.785278 530.41626 L 823.409424 535.812073 L 832.75177 534.92627 L 974.657776 504.724915 L 1051.328979 490.872559 L 1142.818848 475.167786 L 1184.214844 494.496582 L 1188.724854 514.147644 L 1172.456421 554.335693 L 1074.604126 578.496765 L 959.838989 601.449829 L 788.939636 641.879272 L 786.845764 643.409485 L 789.261841 646.389343 L 866.255127 653.637634 L 899.194702 655.409424 L 979.812134 655.409424 L 1129.932861 666.604187 L 1169.154419 692.537109 L 1192.671265 724.268677 L 1188.724854 748.429688 L 1128.322144 779.194641 L 1046.818848 759.865845 L 856.590759 714.604126 L 791.355774 698.335754 L 782.335693 698.335754 L 782.335693 703.731567 L 836.69812 756.885986 L 936.322205 846.845581 L 1061.073975 962.81897 L 1067.436279 991.490112 L 1051.409424 1014.120911 L 1034.496704 1011.704712 L 924.885986 929.234924 L 882.604126 892.107544 L 786.845764 811.48999 L 780.483276 811.48999 L 780.483276 819.946289 L 802.550415 852.241699 L 919.087341 1027.409424 L 925.127625 1081.127686 L 916.671204 1098.604126 L 886.469849 1109.154419 L 853.288696 1103.114136 L 785.073914 1007.355835 L 714.684631 899.516785 L 657.906067 802.872498 L 650.979858 806.81897 L 617.476624 1167.704834 L 601.771851 1186.147705 L 565.530212 1200 L 535.328857 1177.046997 L 519.302124 1139.919556 L 535.328857 1066.550537 L 554.657776 970.792053 L 570.362488 894.68457 L 584.536926 800.134277 L 592.993347 768.724976 L 592.429626 766.630859 L 585.503479 767.516968 L 514.22821 865.369263 L 405.825531 1011.865906 L 320.053711 1103.677979 L 299.516815 1111.812256 L 263.919525 1093.369263 L 267.221497 1060.429688 L 287.114136 1031.114136 L 405.825531 880.107361 L 477.422913 786.52356 L 523.651062 732.483276 L 523.328918 724.671265 L 520.590698 724.671265 L 205.288605 929.395935 L 149.154434 936.644409 L 124.993355 914.01355 L 127.973183 876.885986 L 139.409409 864.80542 L 234.201385 799.570435 Z"/></symbol>
+</defs></svg>
+<img src="logo.png" alt="" class="bg-logo">
+
+<div class="header">
+  <div class="header-left">
+    <div class="header-title"><svg class="claude-logo" style="height:1em;width:1em;vertical-align:-0.1em;margin-right:0.25em;flex-shrink:0"><use href="#claude-icon"/></svg><span>Claude</span> Token Leaderboard</div>
+  </div>
+  <div class="header-right">
+    <div class="header-stats">
+      <div class="header-stat">
+        <div class="header-stat-value" id="total-tokens-all">0</div>
+        <div class="header-stat-label">Total Tokens</div>
+      </div>
+      <div class="header-stat">
+        <div class="header-stat-value" id="total-tokens-recent">0</div>
+        <div class="header-stat-label">Last 2 Weeks</div>
+      </div>
+      <div class="header-stat header-stat-primary">
+        <div class="header-stat-value" id="overall-prs-per-m">0</div>
+        <div class="header-stat-label">Merged PRs² / 1M Tokens</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="leaderboard-wrapper">
+  <div class="leaderboard-section">
+    <div class="table-header">
+      <div>#</div>
+      <div>Name</div>
+      <div class="col-right"><svg class="token-icon"><use href="#claude-icon"/></svg> Total</div>
+      <div class="col-right"><svg class="token-icon"><use href="#claude-icon"/></svg> 2Wk</div>
+      <div class="col-right">PRs</div>
+      <div class="col-right col-primary">Merged PRs² / 1M Tokens</div>
+    </div>
+    <div class="table-body" id="top-body"></div>
+  </div>
+
+  <div class="leaderboard-section bottom-section">
+    <div class="table-header">
+      <div>#</div>
+      <div>Name</div>
+      <div class="col-right"><svg class="token-icon"><use href="#claude-icon"/></svg> Total</div>
+      <div class="col-right"><svg class="token-icon"><use href="#claude-icon"/></svg> 2Wk</div>
+      <div class="col-right">PRs</div>
+      <div class="col-right col-primary">Merged PRs² / 1M Tokens</div>
+    </div>
+    <div class="table-body" id="bottom-body"></div>
+  </div>
+</div>
+
+<button class="expand-btn" id="expand-btn" title="Show all">···</button>
+
+<div class="footer">
+  <div></div>
+  <div class="footer-info" id="date-display"></div>
+</div>
+
+<script>
+const CONFIG = {
+  csvFile: 'data.csv',
+  refreshMs: 5 * 60 * 1000
+};
+
+function formatTokens(n) {
+  if (n === null || n === undefined || isNaN(n)) return '<span class="tokens-zero">—</span>';
+  if (n === 0) return '<span class="tokens-zero">0</span>';
+  const abs = Math.abs(n);
+  let value, unit;
+  if (abs >= 1e12) { value = n/1e12; unit = 'T'; }
+  else if (abs >= 1e9) { value = n/1e9; unit = 'B'; }
+  else if (abs >= 1e6) { value = n/1e6; unit = 'M'; }
+  else if (abs >= 1e3) { value = n/1e3; unit = 'K'; }
+  else return n.toString();
+  let f;
+  if (Math.abs(value)>=100) f = Math.round(value).toString();
+  else if (Math.abs(value)>=10) f = value.toFixed(1).replace(/\.0$/,'');
+  else f = value.toFixed(1);
+  return `${f}<span class="tokens-unit">${unit}</span>`;
+}
+
+function parseCSV(text) {
+  const lines = text.trim().split('\n').filter(l=>l.trim());
+  let dataDate = null;
+
+  // First line starting with # is the data timestamp
+  if (lines.length && lines[0].trim().startsWith('#')) {
+    dataDate = lines.shift().replace(/^#\s*/, '').trim();
+  }
+
+  const entries = lines.map(line => {
+    const p = line.split(',');
+    return {
+      name: p[0].trim(),
+      totalTokens: parseInt(p[1],10)||0,
+      recentTokens: p[2] ? parseInt(p[2].trim(),10)||0 : 0,
+      prCount: p[3] ? parseInt(p[3].trim(),10)||0 : 0,
+      prsPerMillion: p[4] ? parseFloat(p[4].trim())||0 : 0
+    };
+  }).sort((a,b) => b.prsPerMillion - a.prsPerMillion);
+
+  return { entries, dataDate };
+}
+
+function renderRow(entry, rank, maxMetric, maxTotal, maxRecent) {
+  const barPct = maxMetric > 0 ? (entry.prsPerMillion / maxMetric) * 100 : 0;
+  const rankClass = rank <= 3 ? `rank-${rank}` : '';
+  const isMaxTotal = entry.totalTokens === maxTotal;
+  const isMaxRecent = entry.recentTokens === maxRecent;
+
+  let rankContent;
+  if (rank === 1) {
+    rankContent = `<span class="flag-ring"><span class="rank-flag rank-flag-1"><span class="rank-flag-text">1</span></span></span>`;
+  } else if (rank <= 3) {
+    rankContent = `<span class="flag-ring flag-ring-${rank}"><span class="rank-flag rank-flag-${rank}"><span class="rank-flag-text">${rank}</span></span></span>`;
+  } else {
+    rankContent = rank;
+  }
+
+  const metricDisplay = entry.prsPerMillion > 0
+    ? entry.prsPerMillion.toFixed(1)
+    : (entry.totalTokens > 0 ? '<span class="tokens-zero">0.0</span>' : '<span class="tokens-zero">—</span>');
+
+  return `
+    <div class="row ${rankClass}">
+      <div class="rank">${rankContent}</div>
+      <div class="name">${escapeHtml(entry.name)}</div>
+      <div class="tokens${isMaxTotal ? ' tokens-max' : ''}">${formatTokens(entry.totalTokens)}</div>
+      <div class="tokens${isMaxRecent ? ' tokens-max' : ''}">${formatTokens(entry.recentTokens)}</div>
+      <div class="tokens col-right">${entry.prCount > 0 ? entry.prCount : '<span class="tokens-zero">—</span>'}</div>
+      <div class="metric-cell">
+        <div class="metric-bar-h"><div class="metric-bar-fill" style="width:${barPct}%"></div></div>
+        <div class="metric-value">${metricDisplay}</div>
+      </div>
+    </div>`;
+}
+
+function escapeHtml(s) { const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+function fmtPlain(n) {
+  if(n>=1e12)return(n/1e12).toFixed(1).replace(/\.0$/,'')+'T';
+  if(n>=1e9)return(n/1e9).toFixed(1).replace(/\.0$/,'')+'B';
+  if(n>=1e6)return(n/1e6).toFixed(1).replace(/\.0$/,'')+'M';
+  if(n>=1e3)return(n/1e3).toFixed(1).replace(/\.0$/,'')+'K';
+  return n.toString();
+}
+
+let leaderboardData = null;
+
+function renderPanels(expanded) {
+  if (!leaderboardData) return;
+  const { data, max, maxTotal, maxRecent } = leaderboardData;
+  if (expanded) {
+    document.getElementById('top-body').innerHTML    = data.slice(0,20).map((e,i)=>renderRow(e,i+1,max,maxTotal,maxRecent)).join('');
+    document.getElementById('bottom-body').innerHTML = data.slice(20,40).map((e,i)=>renderRow(e,21+i,max,maxTotal,maxRecent)).join('');
+  } else {
+    document.getElementById('top-body').innerHTML    = data.slice(0,10).map((e,i)=>renderRow(e,i+1,max,maxTotal,maxRecent)).join('');
+    document.getElementById('bottom-body').innerHTML = data.slice(10,20).map((e,i)=>renderRow(e,11+i,max,maxTotal,maxRecent)).join('');
+  }
+}
+
+async function loadLeaderboard() {
+  try {
+    const resp = await fetch(CONFIG.csvFile+'?t='+Date.now());
+    if (!resp.ok) throw new Error('Failed to load '+CONFIG.csvFile);
+    const { entries: data, dataDate } = parseCSV(await resp.text());
+    if (!data.length) return;
+
+    if (dataDate) {
+      const d = new Date(dataDate);
+      const label = isNaN(d) ? dataDate : d.toLocaleDateString('en-GB', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      }) + ' · ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      document.getElementById('date-display').textContent = 'Data from ' + label + ' (' + tz + ')';
+    }
+
+    leaderboardData = {
+      data,
+      max: data[0].prsPerMillion,
+      maxTotal: Math.max(...data.map(e=>e.totalTokens)),
+      maxRecent: Math.max(...data.map(e=>e.recentTokens))
+    };
+
+    const expanded = document.querySelector('.leaderboard-wrapper').classList.contains('expanded');
+    renderPanels(expanded);
+
+    const totalAll = data.reduce((s,e)=>s+e.totalTokens,0);
+    const totalRecent = data.reduce((s,e)=>s+e.recentTokens,0);
+    const totalPrs = data.reduce((s,e)=>s+e.prCount,0);
+    const overallPrsPerM = totalRecent > 0 ? (totalPrs / (totalRecent / 1e6)).toFixed(1) : '0';
+    document.getElementById('total-tokens-all').textContent = fmtPlain(totalAll);
+    document.getElementById('total-tokens-recent').textContent = fmtPlain(totalRecent);
+    document.getElementById('overall-prs-per-m').textContent = overallPrsPerM;
+  } catch(e) {
+    document.getElementById('top-body').innerHTML = `<div style="color:var(--picnic-red);padding:1vw">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+loadLeaderboard();
+setInterval(loadLeaderboard, CONFIG.refreshMs);
+
+document.getElementById('expand-btn').addEventListener('click', () => {
+  const wrapper = document.querySelector('.leaderboard-wrapper');
+  const expanded = wrapper.classList.toggle('expanded');
+  renderPanels(expanded);
+});
+</script>
+</body>
+</html>
