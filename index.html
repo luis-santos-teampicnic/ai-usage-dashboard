@@ -88,7 +88,7 @@
   }
 
   .header-stat {
-    text-align: right;
+    text-align: center;
   }
 
   .header-stat-value {
@@ -221,7 +221,7 @@
 
   .table-header {
     display: grid;
-    grid-template-columns: 2.2vw 13vw 5.5vw 5.5vw 2.5vw 1fr;
+    grid-template-columns: 2.2vw 15vw 5.5vw 5.5vw 2.5vw 1fr;
     align-items: center;
     padding: 0.2vh 1vw;
     font-size: 0.6vw;
@@ -241,13 +241,15 @@
 
   .row {
     display: grid;
-    grid-template-columns: 2.2vw 13vw 5.5vw 5.5vw 2.5vw 1fr;
+    grid-template-columns: 2.2vw 15vw 5.5vw 5.5vw 2.5vw 1fr;
     align-items: center;
     padding: 0 1vw;
     border-bottom: 1px solid rgba(255,255,255,0.025);
     flex: 1;
     min-height: 0;
-    animation: row-slide-in 0.4s ease-out both;
+    position: relative;
+    overflow: hidden;
+    animation: row-slide-in 0.85s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
   .row:nth-child(odd) { background: rgba(255,255,255,0.015); }
@@ -660,20 +662,30 @@
   }
 
   /* ── Row entrance ──────────────────────────────── */
-  .row:nth-child(1){animation-delay:.03s} .row:nth-child(2){animation-delay:.06s}
-  .row:nth-child(3){animation-delay:.09s} .row:nth-child(4){animation-delay:.12s}
-  .row:nth-child(5){animation-delay:.15s} .row:nth-child(6){animation-delay:.18s}
-  .row:nth-child(7){animation-delay:.21s} .row:nth-child(8){animation-delay:.24s}
-  .row:nth-child(9){animation-delay:.27s} .row:nth-child(10){animation-delay:.30s}
-  .row:nth-child(11){animation-delay:.33s} .row:nth-child(12){animation-delay:.36s}
-  .row:nth-child(13){animation-delay:.39s} .row:nth-child(14){animation-delay:.42s}
-  .row:nth-child(15){animation-delay:.45s} .row:nth-child(16){animation-delay:.48s}
-  .row:nth-child(17){animation-delay:.51s} .row:nth-child(18){animation-delay:.54s}
-  .row:nth-child(19){animation-delay:.57s} .row:nth-child(20){animation-delay:.60s}
+  /* animation-delay is set inline per row based on rank */
+
+  /* Highlight sweep on each row after it lands */
+  .row::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%; right: 0; bottom: 0;
+    width: 100%;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 40%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.08) 60%, transparent 100%);
+    animation: highlight-sweep 0.7s ease-out both;
+    animation-delay: inherit;
+    pointer-events: none;
+  }
 
   @keyframes row-slide-in {
-    0% { opacity: 0; transform: translateX(-0.8vw); }
-    100% { opacity: 1; transform: translateX(0); }
+    0% { opacity: 0; transform: translateX(-4vw) scaleX(0.95); }
+    60% { opacity: 1; transform: translateX(0.3vw) scaleX(1.01); }
+    100% { opacity: 1; transform: translateX(0) scaleX(1); }
+  }
+
+  @keyframes highlight-sweep {
+    0% { left: -100%; opacity: 0; }
+    30% { opacity: 1; }
+    100% { left: 100%; opacity: 0; }
   }
 
   /* ── Non-expanded: scale up row content to fill taller rows ── */
@@ -728,7 +740,7 @@
       <div>Name</div>
       <div class="col-right"><svg class="token-icon"><use href="#claude-icon"/></svg> Total</div>
       <div class="col-right"><svg class="token-icon"><use href="#claude-icon"/></svg> 2Wk</div>
-      <div class="col-right">PRs</div>
+      <div class="col-right">2Wk PRs</div>
       <div class="col-right col-primary">Merged PRs² / 1M Tokens</div>
     </div>
     <div class="table-body" id="top-body"></div>
@@ -740,7 +752,7 @@
       <div>Name</div>
       <div class="col-right"><svg class="token-icon"><use href="#claude-icon"/></svg> Total</div>
       <div class="col-right"><svg class="token-icon"><use href="#claude-icon"/></svg> 2Wk</div>
-      <div class="col-right">PRs</div>
+      <div class="col-right">2Wk PRs</div>
       <div class="col-right col-primary">Merged PRs² / 1M Tokens</div>
     </div>
     <div class="table-body" id="bottom-body"></div>
@@ -757,7 +769,7 @@
 <script>
 const CONFIG = {
   csvFile: 'data.csv',
-  refreshMs: 5 * 60 * 1000
+  refreshMs: 60 * 1000
 };
 
 function formatTokens(n) {
@@ -820,7 +832,7 @@ function renderRow(entry, rank, maxMetric, maxTotal, maxRecent) {
     : (entry.totalTokens > 0 ? '<span class="tokens-zero">0.0</span>' : '<span class="tokens-zero">—</span>');
 
   return `
-    <div class="row ${rankClass}">
+    <div class="row ${rankClass}" style="animation-delay:${((rank - 1) * 0.07 + 0.05).toFixed(2)}s">
       <div class="rank">${rankContent}</div>
       <div class="name">${escapeHtml(entry.name)}</div>
       <div class="tokens${isMaxTotal ? ' tokens-max' : ''}">${formatTokens(entry.totalTokens)}</div>
