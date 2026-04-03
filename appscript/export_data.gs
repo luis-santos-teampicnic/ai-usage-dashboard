@@ -17,8 +17,8 @@
  *   "PRs 14 Days"    → data/prs_data_14days.csv (standard CSV with header)
  */
 
-const REPO_OWNER = 'PicnicSupermarket';
-const REPO_NAME = 'claude-token-leaderboard';
+const REPO_OWNER = 'luis-santos-teampicnic';
+const REPO_NAME = 'ai-usage-dashboard';
 const BRANCH = 'main';
 
 const SHEET_CONFIG = [
