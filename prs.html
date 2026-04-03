@@ -477,7 +477,14 @@ function buildMatrix(rows) {
   }
 
   // Group authors by team (alphabetical), then alphabetical within each team
-  const teams = [...new Set(Object.values(authorTeam))].sort((a, b) => a.localeCompare(b));
+  const tailAuthorTeams = ['SE', 'Logistics'];
+  const teams = [...new Set(Object.values(authorTeam))].sort((a, b) => {
+    const ai = tailAuthorTeams.indexOf(a), bi = tailAuthorTeams.indexOf(b);
+    if (ai >= 0 && bi >= 0) return ai - bi;
+    if (ai >= 0) return 1;
+    if (bi >= 0) return -1;
+    return a.localeCompare(b);
+  });
   const authors = [];
   const teamBoundaries = []; // { team, startIndex }
   for (const team of teams) {
