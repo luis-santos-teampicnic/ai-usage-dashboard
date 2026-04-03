@@ -372,8 +372,8 @@
   <div class="header-left">
     <div class="header-title">PR Activity <span>Matrix</span></div>
     <div class="period-toggle" id="periodToggle">
-      <button class="period-btn active" data-file="prs_data_week.csv">This Week</button>
-      <button class="period-btn" data-file="prs_data_14days.csv">2 Weeks</button>
+      <button class="period-btn active" data-file="data/prs_data_week.csv">This Week</button>
+      <button class="period-btn" data-file="data/prs_data_14days.csv">2 Weeks</button>
     </div>
   </div>
   <div class="header-stats" id="stats"></div>
@@ -409,7 +409,7 @@ function humanizeRepo(name) {
   return name.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
 
-let currentFile = 'prs_data_week.csv';
+let currentFile = 'data/prs_data_week.csv';
 
 async function loadData(file) {
   const resp = await fetch(file || currentFile);
