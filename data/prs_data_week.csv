@@ -1,3 +1,4 @@
+GITHUB_REPOSITORY_NAME,AUTHOR,CREATED_PR_COUNT,MERGED_PR_COUNT,Name,Team,Repository Team
 picnic-article-demand-service,GuzzoLM,9,1,Lucas Menezes Guzzo,Inbound Systems,Inbound Systems
 picnic-article-demand-service,maxsumrall,1,1,Max Sumrall,Inbound Systems,Inbound Systems
 picnic-claude-code-marketplace,luis-santos-teampicnic,1,0,Luis Almeida Santos,Logistics,Picnic
@@ -6,54 +7,63 @@ picnic-dc-order-service,maxsumrall,1,1,Max Sumrall,Inbound Systems,Inbound Syste
 picnic-dc-supplier-gateway,maxsumrall,1,1,Max Sumrall,Inbound Systems,Inbound Systems
 picnic-dc-supplier-gateway,jorisvantatenhove,1,1,Joris van Tatenhove,Logistics,Inbound Systems
 picnic-delivery-scenario-service,mertkanakkus,1,1,Mertkan Akkus,Runner Systems,RUN
-picnic-delivery-slot-service,madisoncool,3,1,Maddie Cool,Stock Availability Systems,SAS
-picnic-delivery-slot-service,eliashenko,1,0,Elena Liashenko,Stock Availability Systems,SAS
+picnic-delivery-slot-service,madisoncool,3,3,Maddie Cool,Stock Availability Systems,SAS
+picnic-delivery-slot-service,eliashenko,2,1,Elena Liashenko,Stock Availability Systems,SAS
+picnic-delivery-slot-service,jahstreet,2,2,Alex Sasnouskikh,Stock Availability Systems,SAS
 picnic-delivery-slot-service,SvetlanaVaniushina,1,1,Svetlana Vaniushina,Stock Availability Systems,SAS
-picnic-delivery-slot-service,jahstreet,1,1,Alex Sasnouskikh,Stock Availability Systems,SAS
-picnic-distribution,filipecolladavid,8,3,Filipe Colla David,Planning Systems,PLS
+picnic-distribution,filipecolladavid,11,5,Filipe Colla David,Planning Systems,PLS
+picnic-distribution,osama-salman99,4,0,Osama Salman,Planning Systems,PLS
+picnic-distribution,damlanisa,3,0,Damla Çevik,Planning Systems,PLS
+picnic-distribution,marnixackermans,2,0,Marnix Ackermans,Planning Systems,PLS
 picnic-distribution,Wousta,2,1,Luis Bustamante,Planning Systems,PLS
-picnic-distribution,damlanisa,2,0,Damla Çevik,Planning Systems,PLS
 picnic-distribution,oksana-evs,1,0,Oksana Evseeva,Planning Systems,PLS
 picnic-forecasting-systems,akkitheakhil,1,1,Akhil Padmanabhan Nair,Runner Systems,Picnic
-picnic-inbound-console,jorisvantatenhove,3,0,Joris van Tatenhove,Logistics,Inbound Systems
-picnic-inbound-console,burakakinn,1,1,Burak Akın,Inbound Systems,Inbound Systems
+picnic-inbound-console,GuzzoLM,3,2,Lucas Menezes Guzzo,Inbound Systems,Inbound Systems
+picnic-inbound-console,jorisvantatenhove,3,1,Joris van Tatenhove,Logistics,Inbound Systems
+picnic-inbound-console,burakakinn,2,1,Burak Akın,Inbound Systems,Inbound Systems
 picnic-inbound-console,maxsumrall,1,1,Max Sumrall,Inbound Systems,Inbound Systems
-picnic-inbound-console,GuzzoLM,1,0,Lucas Menezes Guzzo,Inbound Systems,Inbound Systems
-picnic-inbound-systems-support,GuzzoLM,5,5,Lucas Menezes Guzzo,Inbound Systems,Inbound Systems
+picnic-inbound-systems-support,GuzzoLM,7,6,Lucas Menezes Guzzo,Inbound Systems,Inbound Systems
 picnic-inbound-systems-support,maxsumrall,1,1,Max Sumrall,Inbound Systems,Inbound Systems
+picnic-inbound-systems-support,sbsyme,1,0,Scott Syme,Inbound Systems,Inbound Systems
 picnic-parcel-service,mertkanakkus,1,1,Mertkan Akkus,Runner Systems,RUN
-picnic-picking-shift-service,jahstreet,1,1,Alex Sasnouskikh,Stock Availability Systems,SAS
-picnic-picking-shift-service,eliashenko,1,0,Elena Liashenko,Stock Availability Systems,SAS
-picnic-picking-shift-service,madisoncool,1,0,Maddie Cool,Stock Availability Systems,SAS
+picnic-picking-shift-service,jahstreet,2,2,Alex Sasnouskikh,Stock Availability Systems,SAS
+picnic-picking-shift-service,eliashenko,1,1,Elena Liashenko,Stock Availability Systems,SAS
+picnic-picking-shift-service,madisoncool,1,1,Maddie Cool,Stock Availability Systems,SAS
 picnic-picking-shift-service,SvetlanaVaniushina,1,1,Svetlana Vaniushina,Stock Availability Systems,SAS
-picnic-planning-gateway,Wousta,1,0,Luis Bustamante,Planning Systems,PLS
 picnic-planning-gateway,oksana-evs,1,0,Oksana Evseeva,Planning Systems,PLS
+picnic-planning-gateway,Wousta,1,0,Luis Bustamante,Planning Systems,PLS
 picnic-pom,NickLogic,7,0,Nikolay Ivanov,Inbound Systems,Inbound Systems
-picnic-pom,sbsyme,2,0,Scott Syme,Inbound Systems,Inbound Systems
+picnic-pom,sbsyme,3,1,Scott Syme,Inbound Systems,Inbound Systems
 picnic-pom,jorisvantatenhove,1,0,Joris van Tatenhove,Logistics,Inbound Systems
-picnic-pom,maxsumrall,1,1,Max Sumrall,Inbound Systems,Inbound Systems
 picnic-pom,GuzzoLM,1,1,Lucas Menezes Guzzo,Inbound Systems,Inbound Systems
-picnic-purchase-order-proposal-service,burakakinn,2,0,Burak Akın,Inbound Systems,Inbound Systems
+picnic-pom,maxsumrall,1,1,Max Sumrall,Inbound Systems,Inbound Systems
+picnic-pom,efedagdemir,1,0,Efe Dağdemir,Inbound Systems,Inbound Systems
+picnic-pom,PicnicMatthewBiot,1,0,Matthew Biot,Inbound Systems,Inbound Systems
+picnic-purchase-order-proposal-service,GuzzoLM,5,3,Lucas Menezes Guzzo,Inbound Systems,Inbound Systems
+picnic-purchase-order-proposal-service,burakakinn,2,2,Burak Akın,Inbound Systems,Inbound Systems
+picnic-purchase-order-proposal-service,PicnicMatthewBiot,1,0,Matthew Biot,Inbound Systems,Inbound Systems
 picnic-purchase-order-proposal-service,maxsumrall,1,1,Max Sumrall,Inbound Systems,Inbound Systems
-picnic-purchase-order-proposal-service,GuzzoLM,1,0,Lucas Menezes Guzzo,Inbound Systems,Inbound Systems
-picnic-runner-backend,vdanilov-pn,5,2,Vladimir Danilov,Runner Systems,RUN
-picnic-runner-backend,mertkanakkus,2,1,Mertkan Akkus,Runner Systems,RUN
+picnic-runner-backend,vdanilov-pn,5,4,Vladimir Danilov,Runner Systems,RUN
+picnic-runner-backend,mertkanakkus,2,2,Mertkan Akkus,Runner Systems,RUN
 picnic-runner-clients,nixonandhika,4,2,Nixon Andhika,Runner Systems,RUN
 picnic-runner-clients,jcavendish14,3,3,Jesse Cavendish,Runner Systems,RUN
 picnic-runner-clients,akkitheakhil,1,0,Akhil Padmanabhan Nair,Runner Systems,RUN
-picnic-site-service,luis-santos-teampicnic,2,1,Luis Almeida Santos,Logistics,Picnic
-picnic-stock-service,SvetlanaVaniushina,5,2,Svetlana Vaniushina,Stock Availability Systems,SAS
-picnic-stock-service,jahstreet,3,2,Alex Sasnouskikh,Stock Availability Systems,SAS
-picnic-stock-service,eliashenko,2,1,Elena Liashenko,Stock Availability Systems,SAS
+picnic-scratch,GuzzoLM,1,1,Lucas Menezes Guzzo,Inbound Systems,Picnic
+picnic-site-service,luis-santos-teampicnic,3,1,Luis Almeida Santos,Logistics,Picnic
+picnic-stock-service,SvetlanaVaniushina,5,3,Svetlana Vaniushina,Stock Availability Systems,SAS
+picnic-stock-service,jahstreet,4,3,Alex Sasnouskikh,Stock Availability Systems,SAS
+picnic-stock-service,eliashenko,3,3,Elena Liashenko,Stock Availability Systems,SAS
+picnic-stock-service,madisoncool,2,2,Maddie Cool,Stock Availability Systems,SAS
 picnic-stock-service,xinyujiang0316,2,1,Xinyu Jiang,Stock Availability Systems,SAS
-picnic-stock-service,madisoncool,2,1,Maddie Cool,Stock Availability Systems,SAS
-picnic-stock-service,jorisvantatenhove,1,0,Joris van Tatenhove,Logistics,SAS
 picnic-stock-service,sebastiandeaconu-teampicnic,1,0,Sebastian Deaconu,Stock Availability Systems,SAS
+picnic-stock-service,jorisvantatenhove,1,0,Joris van Tatenhove,Logistics,SAS
 picnic-supplier-integrations,PicnicMatthewBiot,2,1,Matthew Biot,Inbound Systems,Inbound Systems
 picnic-supplier-integrations,maxsumrall,1,1,Max Sumrall,Inbound Systems,Inbound Systems
 picnic-supplier-stock-service,maxsumrall,1,1,Max Sumrall,Inbound Systems,Inbound Systems
-picnic-supplier-stock-service,jorisvantatenhove,1,0,Joris van Tatenhove,Logistics,Inbound Systems
-picnic-timesheets,nativacu,3,1,Natalia Cunillera,Runner Systems,PPL
+picnic-supplier-stock-service,jorisvantatenhove,1,1,Joris van Tatenhove,Logistics,Inbound Systems
+picnic-timesheets,nativacu,4,3,Natalia Cunillera,Runner Systems,PPL
 picnic-trade-unit-service,maxsumrall,1,1,Max Sumrall,Inbound Systems,Inbound Systems
 picnic-transport-planning-system,luis-santos-teampicnic,3,1,Luis Almeida Santos,Logistics,TS
+picnic-transport-planning-system,VladPicNic,2,0,Vlad Cursaru,Transport Systems,TS
+picnic-transport-planning-system,denispetrik,1,0,Denis Petrik,Transport Systems,TS
 picnic-transport-planning-system,Janneploeger,1,1,Janne Ploeger,Transport Systems,TS
