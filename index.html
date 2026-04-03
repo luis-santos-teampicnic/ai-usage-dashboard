@@ -187,6 +187,29 @@
     border-color: rgba(255,255,255,0.2);
   }
 
+  .sort-btn {
+    position: fixed;
+    bottom: 1.2vh;
+    left: 1.2vw;
+    background: none;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 0.25vw;
+    color: rgba(255,255,255,0.18);
+    font-size: 0.55vw;
+    font-family: inherit;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.3vh 0.5vw;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+    z-index: 100;
+  }
+  .sort-btn:hover {
+    color: rgba(255,255,255,0.45);
+    border-color: rgba(255,255,255,0.2);
+  }
+
   .section-header .icon { font-size: 1.2vw; }
 
   /* ── Grid layout ─────────────────────────────────── */
@@ -195,7 +218,7 @@
 
   .col-headers {
     display: grid;
-    grid-template-columns: 2.2vw 13vw 11vw 2.5vw 1fr;
+    grid-template-columns: 2.2vw 13vw 10vw 5vw 2.5vw 1fr;
     padding: 0.3vh 1vw 0;
     flex-shrink: 0;
   }
@@ -221,7 +244,7 @@
 
   .table-header {
     display: grid;
-    grid-template-columns: 2.2vw 15vw 5.5vw 5.5vw 2.5vw 1fr;
+    grid-template-columns: 2.2vw 13vw 5vw 5vw 5vw 2.5vw 1fr;
     align-items: center;
     padding: 0.2vh 1vw;
     font-size: 0.6vw;
@@ -241,7 +264,7 @@
 
   .row {
     display: grid;
-    grid-template-columns: 2.2vw 15vw 5.5vw 5.5vw 2.5vw 1fr;
+    grid-template-columns: 2.2vw 13vw 5vw 5vw 5vw 2.5vw 1fr;
     align-items: center;
     padding: 0 1vw;
     border-bottom: 1px solid rgba(255,255,255,0.025);
@@ -740,6 +763,7 @@
       <div>Name</div>
       <div class="col-right"><svg class="token-icon"><use href="#claude-icon"/></svg> Total</div>
       <div class="col-right"><svg class="token-icon"><use href="#claude-icon"/></svg> 2Wk</div>
+      <div class="col-right"><svg class="token-icon"><use href="#claude-icon"/></svg> 1Wk</div>
       <div class="col-right">2Wk PRs</div>
       <div class="col-right col-primary">Merged PRs² / 1M Tokens</div>
     </div>
@@ -752,6 +776,7 @@
       <div>Name</div>
       <div class="col-right"><svg class="token-icon"><use href="#claude-icon"/></svg> Total</div>
       <div class="col-right"><svg class="token-icon"><use href="#claude-icon"/></svg> 2Wk</div>
+      <div class="col-right"><svg class="token-icon"><use href="#claude-icon"/></svg> 1Wk</div>
       <div class="col-right">2Wk PRs</div>
       <div class="col-right col-primary">Merged PRs² / 1M Tokens</div>
     </div>
@@ -759,6 +784,7 @@
   </div>
 </div>
 
+<button class="sort-btn" id="sort-btn" title="Toggle sort">Sort: PRs²/1M</button>
 <button class="expand-btn" id="expand-btn" title="Show all">···</button>
 
 <div class="footer">
@@ -804,19 +830,21 @@ function parseCSV(text) {
       name: p[0].trim(),
       totalTokens: parseInt(p[1],10)||0,
       recentTokens: p[2] ? parseInt(p[2].trim(),10)||0 : 0,
-      prCount: p[3] ? parseInt(p[3].trim(),10)||0 : 0,
-      prsPerMillion: p[4] ? parseFloat(p[4].trim())||0 : 0
+      weekTokens: p[3] ? parseInt(p[3].trim(),10)||0 : 0,
+      prCount: p[4] ? parseInt(p[4].trim(),10)||0 : 0,
+      prsPerMillion: p[5] ? parseFloat(p[5].trim())||0 : 0
     };
-  }).sort((a,b) => b.prsPerMillion - a.prsPerMillion);
+  }).sort(currentSortFn);
 
   return { entries, dataDate };
 }
 
-function renderRow(entry, rank, maxMetric, maxTotal, maxRecent) {
+function renderRow(entry, rank, maxMetric, maxTotal, maxRecent, maxWeek) {
   const barPct = maxMetric > 0 ? (entry.prsPerMillion / maxMetric) * 100 : 0;
   const rankClass = rank <= 3 ? `rank-${rank}` : '';
   const isMaxTotal = entry.totalTokens === maxTotal;
   const isMaxRecent = entry.recentTokens === maxRecent;
+  const isMaxWeek = entry.weekTokens === maxWeek;
 
   let rankContent;
   if (rank === 1) {
@@ -837,6 +865,7 @@ function renderRow(entry, rank, maxMetric, maxTotal, maxRecent) {
       <div class="name">${escapeHtml(entry.name)}</div>
       <div class="tokens${isMaxTotal ? ' tokens-max' : ''}">${formatTokens(entry.totalTokens)}</div>
       <div class="tokens${isMaxRecent ? ' tokens-max' : ''}">${formatTokens(entry.recentTokens)}</div>
+      <div class="tokens${isMaxWeek ? ' tokens-max' : ''}">${formatTokens(entry.weekTokens)}</div>
       <div class="tokens col-right">${entry.prCount > 0 ? entry.prCount : '<span class="tokens-zero">—</span>'}</div>
       <div class="metric-cell">
         <div class="metric-bar-h"><div class="metric-bar-fill" style="width:${barPct}%"></div></div>
@@ -857,15 +886,22 @@ function fmtPlain(n) {
 
 let leaderboardData = null;
 
+const sortModes = [
+  { label: 'Sort: PRs²/1M', fn: (a,b) => b.prsPerMillion - a.prsPerMillion },
+  { label: 'Sort: 1Wk Tokens', fn: (a,b) => b.weekTokens - a.weekTokens }
+];
+let currentSortIdx = 0;
+let currentSortFn = sortModes[0].fn;
+
 function renderPanels(expanded) {
   if (!leaderboardData) return;
-  const { data, max, maxTotal, maxRecent } = leaderboardData;
+  const { data, max, maxTotal, maxRecent, maxWeek } = leaderboardData;
   if (expanded) {
-    document.getElementById('top-body').innerHTML    = data.slice(0,20).map((e,i)=>renderRow(e,i+1,max,maxTotal,maxRecent)).join('');
-    document.getElementById('bottom-body').innerHTML = data.slice(20,40).map((e,i)=>renderRow(e,21+i,max,maxTotal,maxRecent)).join('');
+    document.getElementById('top-body').innerHTML    = data.slice(0,20).map((e,i)=>renderRow(e,i+1,max,maxTotal,maxRecent,maxWeek)).join('');
+    document.getElementById('bottom-body').innerHTML = data.slice(20,40).map((e,i)=>renderRow(e,21+i,max,maxTotal,maxRecent,maxWeek)).join('');
   } else {
-    document.getElementById('top-body').innerHTML    = data.slice(0,10).map((e,i)=>renderRow(e,i+1,max,maxTotal,maxRecent)).join('');
-    document.getElementById('bottom-body').innerHTML = data.slice(10,20).map((e,i)=>renderRow(e,11+i,max,maxTotal,maxRecent)).join('');
+    document.getElementById('top-body').innerHTML    = data.slice(0,10).map((e,i)=>renderRow(e,i+1,max,maxTotal,maxRecent,maxWeek)).join('');
+    document.getElementById('bottom-body').innerHTML = data.slice(10,20).map((e,i)=>renderRow(e,11+i,max,maxTotal,maxRecent,maxWeek)).join('');
   }
 }
 
@@ -889,7 +925,8 @@ async function loadLeaderboard() {
       data,
       max: data[0].prsPerMillion,
       maxTotal: Math.max(...data.map(e=>e.totalTokens)),
-      maxRecent: Math.max(...data.map(e=>e.recentTokens))
+      maxRecent: Math.max(...data.map(e=>e.recentTokens)),
+      maxWeek: Math.max(...data.map(e=>e.weekTokens))
     };
 
     const expanded = document.querySelector('.leaderboard-wrapper').classList.contains('expanded');
@@ -914,6 +951,13 @@ document.getElementById('expand-btn').addEventListener('click', () => {
   const wrapper = document.querySelector('.leaderboard-wrapper');
   const expanded = wrapper.classList.toggle('expanded');
   renderPanels(expanded);
+});
+
+document.getElementById('sort-btn').addEventListener('click', () => {
+  currentSortIdx = (currentSortIdx + 1) % sortModes.length;
+  currentSortFn = sortModes[currentSortIdx].fn;
+  document.getElementById('sort-btn').textContent = sortModes[currentSortIdx].label;
+  loadLeaderboard();
 });
 </script>
 </body>
